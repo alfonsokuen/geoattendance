@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: geoattendance-db-prod
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-root}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rootpassword}
+      POSTGRES_DB: geoattendance
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    container_name: geoattendance-storage-prod
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-rootuser}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-rootpassword123}
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data_prod:/data
+    restart: unless-stopped
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: geoattendance-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-root}:${POSTGRES_PASSWORD:-rootpassword}@postgres:5432/geoattendance?schema=public
+      - JWT_SECRET=${JWT_SECRET:-supers3cr3tproduction}
+      - MINIO_ENDPOINT=minio
+      - MINIO_PORT=9000
+      - MINIO_ACCESS_KEY=${MINIO_ROOT_USER:-rootuser}
+      - MINIO_SECRET_KEY=${MINIO_ROOT_PASSWORD:-rootpassword123}
+      - MINIO_BUCKET=geoattendance
+    depends_on:
+      - postgres
+      - minio
+    restart: unless-stopped
+    # Ejecutamos las migraciones antes de iniciar el server
+    command: sh -c "npx prisma db push && npm run start:prod"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: geoattendance-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3001 # Asegúrate de cambiar esto por la IP o Dominio público de tu backend si está en un VPS
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data_prod:
+  minio_data_prod:

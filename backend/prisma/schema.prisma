@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SUPERADMIN
+  HR
+  SUPERVISOR
+  EMPLOYEE
+}
+
+enum AttendanceType {
+  IN
+  OUT
+  LUNCH_IN
+  LUNCH_OUT
+  FIELD_IN
+  FIELD_OUT
+}
+
+enum ZoneStatus {
+  INSIDE
+  OUTSIDE_ALLOWED
+  OUTSIDE_REJECTED
+}
+
+enum ReviewStatus {
+  APPROVED
+  PENDING
+  REJECTED
+}
+
+enum IncidentStatus {
+  OPEN
+  RESOLVED
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(EMPLOYEE)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  employee     Employee?
+}
+
+model Employee {
+  id             String    @id @default(uuid())
+  userId         String    @unique
+  user           User      @relation(fields: [userId], references: [id])
+  firstName      String
+  lastName       String
+  documentId     String    @unique
+  branchId       String
+  branch         Branch    @relation(fields: [branchId], references: [id])
+
+  schedules      EmployeeSchedule[]
+  records        AttendanceRecord[]
+}
+
+model Branch {
+  id          String   @id @default(uuid())
+  name        String
+  geofenceId  String?  @unique
+  geofence    Geofence? @relation(fields: [geofenceId], references: [id])
+  
+  employees   Employee[]
+}
+
+model Geofence {
+  id           String   @id @default(uuid())
+  name         String
+  latitude     Float
+  longitude    Float
+  radiusMeters Int      @default(50)
+  
+  branch       Branch?
+  records      AttendanceRecord[]
+}
+
+model Schedule {
+  id               String   @id @default(uuid())
+  name             String
+  startTime        String   // HH:mm format
+  endTime          String   // HH:mm format
+  toleranceMinutes Int      @default(15)
+
+  employees        EmployeeSchedule[]
+}
+
+model EmployeeSchedule {
+  employeeId String
+  scheduleId String
+  validFrom  DateTime
+  validTo    DateTime?
+
+  employee   Employee @relation(fields: [employeeId], references: [id])
+  schedule   Schedule @relation(fields: [scheduleId], references: [id])
+
+  @@id([employeeId, scheduleId])
+}
+
+model AttendanceRecord {
+  id           String   @id @default(uuid())
+  employeeId   String
+  employee     Employee @relation(fields: [employeeId], references: [id])
+  timestamp    DateTime @default(now())
+  type         AttendanceType
+  
+  latitude     Float
+  longitude    Float
+  gpsAccuracy  Float
+  
+  geofenceId   String?
+  geofence     Geofence? @relation(fields: [geofenceId], references: [id])
+  zoneStatus   ZoneStatus
+  
+  selfieUrl    String?
+  deviceOS     String?
+  observations String?
+  reviewStatus ReviewStatus @default(PENDING)
+  
+  incidents    Incident[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Incident {
+  id          String   @id @default(uuid())
+  recordId    String
+  record      AttendanceRecord @relation(fields: [recordId], references: [id])
+  description String
+  resolvedById String?
+  status      IncidentStatus @default(OPEN)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Holiday {
+  id          String   @id @default(uuid())
+  date        DateTime
+  description String
+}
