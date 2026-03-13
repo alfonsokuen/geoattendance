@@ -46,6 +46,9 @@ services:
       - minio
     restart: unless-stopped
     command: sh -c "npx prisma db push && npm run start:prod"
+    networks:
+      - default
+      - traefik-public
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.geoattendance-backend.rule=Host(`geo.idkmanager.com`) && PathPrefix(`/api`)"
@@ -63,12 +66,21 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+    networks:
+      - default
+      - traefik-public
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.geoattendance-frontend.rule=Host(`geo.idkmanager.com`)"
       - "traefik.http.routers.geoattendance-frontend.entrypoints=websecure"
       - "traefik.http.routers.geoattendance-frontend.tls=true"
       - "traefik.http.services.geoattendance-frontend.loadbalancer.server.port=3000"
+
+networks:
+  default:
+  traefik-public:
+    external: true
+    name: traefik-public # Ajustar si en el servidor se llama diferente, ej. 'proxy' o 'traefik'
 
 volumes:
   postgres_data_prod:
