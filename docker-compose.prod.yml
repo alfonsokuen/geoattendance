@@ -24,9 +24,7 @@ services:
     restart: unless-stopped
 
   backend:
-    build: 
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/alfonsokuen/geoattendance-backend:latest
     container_name: geoattendance-backend
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-root}:${POSTGRES_PASSWORD:-rootpassword}@postgres:5432/geoattendance?schema=public
@@ -52,9 +50,7 @@ services:
       - "traefik.http.services.geoattendance-backend.loadbalancer.server.port=3001"
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: ghcr.io/alfonsokuen/geoattendance-frontend:latest
     container_name: geoattendance-frontend
     environment:
       - NEXT_PUBLIC_API_URL=https://geo.idkmanager.com/api
