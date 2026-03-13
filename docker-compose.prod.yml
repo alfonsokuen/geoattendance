@@ -44,6 +44,7 @@ services:
       - IASERVER_NET
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=IASERVER_NET"
       - "traefik.http.routers.geoattendance-backend.rule=Host(`geo.idkmanager.com`) && PathPrefix(`/api`)"
       - "traefik.http.routers.geoattendance-backend.entrypoints=websecure"
       - "traefik.http.routers.geoattendance-backend.tls=true"
@@ -62,6 +63,7 @@ services:
       - IASERVER_NET
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=IASERVER_NET"
       - "traefik.http.routers.geoattendance-frontend.rule=Host(`geo.idkmanager.com`)"
       - "traefik.http.routers.geoattendance-frontend.entrypoints=websecure"
       - "traefik.http.routers.geoattendance-frontend.tls=true"
