@@ -29,7 +29,7 @@ export class AttendanceController {
     @Body('gpsAccuracy', ParseFloatPipe) gpsAccuracy: number,
     @Body('deviceOS') deviceOS: string,
   ) {
-    let selfieUrl = null;
+    let selfieUrl: string | undefined = undefined;
     if (selfie) {
       selfieUrl = await this.attendanceService.uploadSelfie(selfie);
     }

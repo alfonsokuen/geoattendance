@@ -78,8 +78,8 @@ export class AttendanceService {
 
     if (!employee) throw new BadRequestException('Empleado no encontrado');
 
-    let zoneStatus = ZoneStatus.OUTSIDE_REJECTED;
-    let geofenceId = null;
+    let zoneStatus: ZoneStatus = ZoneStatus.OUTSIDE_REJECTED;
+    let geofenceId: string | undefined = undefined;
 
     if (employee.branch?.geofence) {
       const gf = employee.branch.geofence;
