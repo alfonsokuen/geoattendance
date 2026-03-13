@@ -33,8 +33,6 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: geoattendance-backend
-    ports:
-      - "3001:3001"
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-root}:${POSTGRES_PASSWORD:-rootpassword}@postgres:5432/geoattendance?schema=public
       - JWT_SECRET=${JWT_SECRET:-supers3cr3tproduction}
@@ -47,21 +45,30 @@ services:
       - postgres
       - minio
     restart: unless-stopped
-    # Ejecutamos las migraciones antes de iniciar el server
     command: sh -c "npx prisma db push && npm run start:prod"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.geoattendance-backend.rule=Host(`geo.idkmanager.com`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.geoattendance-backend.entrypoints=websecure"
+      - "traefik.http.routers.geoattendance-backend.tls=true"
+      - "traefik.http.services.geoattendance-backend.loadbalancer.server.port=3001"
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: geoattendance-frontend
-    ports:
-      - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:3001 # Asegúrate de cambiar esto por la IP o Dominio público de tu backend si está en un VPS
+      - NEXT_PUBLIC_API_URL=https://geo.idkmanager.com/api
     depends_on:
       - backend
     restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.geoattendance-frontend.rule=Host(`geo.idkmanager.com`)"
+      - "traefik.http.routers.geoattendance-frontend.entrypoints=websecure"
+      - "traefik.http.routers.geoattendance-frontend.tls=true"
+      - "traefik.http.services.geoattendance-frontend.loadbalancer.server.port=3000"
 
 volumes:
   postgres_data_prod:

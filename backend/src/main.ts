@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.setGlobalPrefix('api');
   app.enableCors({ origin: '*' }); // Permite CORS para el PWA
   await app.listen(process.env.PORT ?? 3001);
 }

@@ -11,7 +11,8 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (token) {
-      fetch("http://localhost:3001/attendance", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+      fetch(`${apiUrl}/attendance`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       .then(res => res.json())

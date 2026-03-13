@@ -51,7 +51,8 @@ export default function Dashboard() {
       formData.append("deviceOS", navigator.userAgent);
       formData.append("selfie", file);
 
-      const res = await fetch("http://localhost:3001/attendance/record", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+      const res = await fetch(`${apiUrl}/attendance/record`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
