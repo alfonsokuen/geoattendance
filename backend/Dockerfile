@@ -6,7 +6,7 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 RUN apk add --no-cache python3 make g++
-RUN npm install
+RUN npm install --legacy-peer-deps --force
 RUN npx prisma generate
 
 COPY . .
