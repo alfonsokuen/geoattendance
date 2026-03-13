@@ -8,8 +8,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-root}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rootpassword}
       POSTGRES_DB: geoattendance
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data_prod:/var/lib/postgresql/data
     restart: unless-stopped
@@ -21,9 +19,6 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-rootuser}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-rootpassword123}
     command: server /data --console-address ":9001"
-    ports:
-      - "9000:9000"
-      - "9001:9001"
     volumes:
       - minio_data_prod:/data
     restart: unless-stopped
@@ -48,7 +43,7 @@ services:
     command: sh -c "npx prisma db push && npm run start:prod"
     networks:
       - default
-      - traefik-public
+      - IASERVER_NET
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.geoattendance-backend.rule=Host(`geo.idkmanager.com`) && PathPrefix(`/api`)"
@@ -68,7 +63,7 @@ services:
     restart: unless-stopped
     networks:
       - default
-      - traefik-public
+      - IASERVER_NET
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.geoattendance-frontend.rule=Host(`geo.idkmanager.com`)"
@@ -78,9 +73,8 @@ services:
 
 networks:
   default:
-  traefik-public:
+  IASERVER_NET:
     external: true
-    name: traefik-public # Ajustar si en el servidor se llama diferente, ej. 'proxy' o 'traefik'
 
 volumes:
   postgres_data_prod:
